@@ -105,6 +105,7 @@ INC_PATH = \
        asf/sam/drivers/usart                                  \
        asf/sam/utils                                          \
        asf/sam/utils/cmsis/sam3x/include                      \
+       src/asf/sam/utils/cmsis/sam3x/include/component        \
        asf/sam/utils/cmsis/sam3x/source/templates             \
        asf/sam/utils/header_files                             \
        asf/sam/utils/preprocessor                             \
