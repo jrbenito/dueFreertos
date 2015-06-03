@@ -36,5 +36,8 @@ output/
 *.map
 *.lss
 
-# Backup files
+# Backup files and eclipse project files
 *~
+.cproject
+.project
+.settings/*
