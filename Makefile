@@ -12,7 +12,7 @@
 #
 # \file
 #
-# Copyright (c) 2011 - 2012 Atmel Corporation. All rights reserved.
+# Copyright (c) 2011 - 2013 Atmel Corporation. All rights reserved.
 #
 # \asf_license_start
 #
@@ -95,36 +95,30 @@ ifdef OS
   ifeq ($(strip $(OS)), Linux)
     os_type     := Linux
   endif
-	ifeq (Windows,$(findstring Windows,$(OS)))
+  ifeq ($(strip $(OS)), Windows)
     os_type     := windows32_64
   endif
 endif
 
 os_type         ?= $(strip $(shell uname))
 
-#ifeq ($(os_type),windows32)
-#os              := Windows
-#else
-#ifeq ($(os_type),windows64)
-#os              := Windows
-#else
-#ifeq ($(os_type),)
-#os              := Windows
-#else
-## Default to Linux style operating system. Both Cygwin and mingw are fully
-## compatible (for this Makefile) with Linux.
-#os              := Linux
-#endif
-#endif
-#endif
-
-ifeq ($(os_type),windows32_64)
+ifeq ($(os_type),windows32)
 os              := Windows
 else
-ifeq ($(os_type),Linux)
-os              := Linux
+ifeq ($(os_type),windows64)
+os              := Windows
 else
+ifeq ($(os_type),windows32_64)
+os              ?= Windows
+else
+ifeq ($(os_type),)
+os              := Windows
+else
+# Default to Linux style operating system. Both Cygwin and mingw are fully
+# compatible (for this Makefile) with Linux.
 os              := Linux
+endif
+endif
 endif
 endif
 
@@ -145,12 +139,16 @@ OBJDUMP         := $(CROSS)objdump
 SIZE            := $(CROSS)size
 GDB             := $(CROSS)gdb
 
-#RM              := cs-rm -f
+RM              := rm
 ifeq ($(os),Windows)
-#RMDIR           := rmdir /S /Q
-RMDIR           := cs-rm  -rf
+RMDIR           := rmdir /S /Q
 else
 RMDIR           := rmdir -p --ignore-fail-on-non-empty
+endif
+
+# On Windows, we need to override the shell to force the use of cmd.exe
+ifeq ($(os),Windows)
+SHELL           := cmd
 endif
 
 # Strings for beautifying output
@@ -160,6 +158,8 @@ MSG_CLEAN_DOC           = "RMDIR   $(docdir)"
 MSG_MKDIR               = "MKDIR   $(dir $@)"
 
 MSG_INFO                = "INFO    "
+MSG_PREBUILD            = "PREBUILD  $(PREBUILD_CMD)"
+MSG_POSTBUILD           = "POSTBUILD $(POSTBUILD_CMD)"
 
 MSG_ARCHIVING           = "AR      $@"
 MSG_ASSEMBLING          = "AS      $@"
@@ -200,8 +200,7 @@ endif
 ifeq ($(VERBOSE), 1)
   Q =
 else
-#  Q = @
-  Q =
+  Q = @
 endif
 
 arflags-gnu-y           := $(ARFLAGS)
@@ -270,6 +269,9 @@ cflags-gnu-y    += -std=gnu99
 # Compile C++ files using the GNU++98 standard.
 cxxflags-gnu-y  += -std=gnu++98
 
+# Don't use strict aliasing (very common in embedded applications).
+cflags-gnu-y    += -fno-strict-aliasing
+cxxflags-gnu-y  += -fno-strict-aliasing
 
 # Separate each function and data into its own separate section to allow
 # garbage collection of unused sections.
@@ -282,16 +284,13 @@ cflags-gnu-y += -Wmain -Wparentheses
 cflags-gnu-y += -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused
 cflags-gnu-y += -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef
 cflags-gnu-y += -Wshadow -Wbad-function-cast -Wwrite-strings
-cflags-gnu-y += -Wsign-compare -Waggregate-return 
+cflags-gnu-y += -Wsign-compare -Waggregate-return
 cflags-gnu-y += -Wmissing-declarations
 cflags-gnu-y += -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations
 cflags-gnu-y += -Wpacked -Wredundant-decls -Wnested-externs -Winline -Wlong-long
 cflags-gnu-y += -Wunreachable-code
 cflags-gnu-y += -Wcast-align
 cflags-gnu-y += --param max-inline-insns-single=500
-
-# To reduce application size use only integer printf function.
-cflags-gnu-y += -Dprintf=iprintf
 
 # Garbage collect unreferred sections when linking.
 ldflags-gnu-y   += -Wl,--gc-sections
@@ -333,8 +332,6 @@ clean-files             += $(dep-files)
 
 clean-dirs              += $(call reverse,$(sort $(wildcard $(dir $(obj-y)))))
 
-.PHONY: all
-
 # Default target.
 .PHONY: all
 ifeq ($(project_type),all)
@@ -346,18 +343,22 @@ ifeq ($(target_type),lib)
 all: $(target) $(project).lss $(project).sym
 else
 ifeq ($(target_type),elf)
-all: $(target) $(project).lss $(project).sym $(project).hex $(project).bin
+all: prebuild $(target) $(project).lss $(project).sym $(project).hex $(project).bin postbuild
 endif
 endif
 endif
 
-# Default target.
-.PHONY: os
-os:
-	@echo OS '$(OS)'
-	@echo os type '$(os_type)'
-	@echo os '$(os)'
-	@echo '$(findstring Windows,$(OS))'
+prebuild:
+ifneq ($(strip $(PREBUILD_CMD)),)
+	@echo $(MSG_PREBUILD)
+	$(Q)$(PREBUILD_CMD)
+endif
+
+postbuild:
+ifneq ($(strip $(POSTBUILD_CMD)),)
+	@echo $(MSG_POSTBUILD)
+	$(Q)$(POSTBUILD_CMD)
+endif
 
 # Clean up the project.
 .PHONY: clean
@@ -399,33 +400,33 @@ objfiles: $(obj-y)
 
 # Create object files from C source files.
 $(build-dir)%.o: %.c Makefile config.mk
-	@echo $(MSG_MKDIR)
+	$(Q)test -d $(dir $@) || echo $(MSG_MKDIR)
 ifeq ($(os),Windows)
-	-mkdir $(subst /,\,$(dir $@))
+	$(Q)test -d $(patsubst %/,%,$(dir $@)) || mkdir $(subst /,\,$(dir $@))
 else
-	-mkdir -p $(dir $@)
+	$(Q)test -d $(dir $@) || mkdir -p $(dir $@)
 endif
 	@echo $(MSG_COMPILING)
 	$(Q)$(CC) $(c_flags) -c $< -o $@
 
 # Create object files from C++ source files.
 $(build-dir)%.o: %.cpp Makefile config.mk
-	@echo $(MSG_MKDIR)
+	$(Q)test -d $(dir $@) || echo $(MSG_MKDIR)
 ifeq ($(os),Windows)
-	-mkdir $(subst /,\,$(dir $@))
+	$(Q)test -d $(patsubst %/,%,$(dir $@)) || mkdir $(subst /,\,$(dir $@))
 else
-	-mkdir -p $(dir $@)
+	$(Q)test -d $(dir $@) || mkdir -p $(dir $@)
 endif
 	@echo $(MSG_COMPILING_CXX)
 	$(Q)$(CXX) $(cxx_flags) -c $< -o $@
 
 # Preprocess and assemble: create object files from assembler source files.
 $(build-dir)%.o: %.S Makefile config.mk
-	@echo $(MSG_MKDIR)
+	$(Q)test -d $(dir $@) || echo $(MSG_MKDIR)
 ifeq ($(os),Windows)
-	-mkdir $(subst /,\,$(dir $@))
+	$(Q)test -d $(patsubst %/,%,$(dir $@)) || mkdir $(subst /,\,$(dir $@))
 else
-	-mkdir -p $(dir $@)
+	$(Q)test -d $(dir $@) || mkdir -p $(dir $@)
 endif
 	@echo $(MSG_ASSEMBLING)
 	$(Q)$(CC) $(a_flags) -c $< -o $@
@@ -443,10 +444,9 @@ $(target): Makefile config.mk $(obj-y)
 else
 ifeq ($(target_type),elf)
 # Link the object files into an ELF file. Also make sure the target is rebuilt
-# if the common Makefile or project config.mk is changed.
+# if the common Makefile.sam.in or project config.mk is changed.
 $(target): $(linker_script) Makefile config.mk $(obj-y)
 	@echo $(MSG_LINKING)
-	@echo $(Q)$(LD) $(l_flags) $(obj-y) $(libflags-gnu-y) -o $@
 	$(Q)$(LD) $(l_flags) $(obj-y) $(libflags-gnu-y) -o $@
 	@echo $(MSG_SIZE)
 	$(Q)$(SIZE) -Ax $@
