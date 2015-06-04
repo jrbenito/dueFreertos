@@ -3,7 +3,7 @@
  *
  * \brief Chip-specific oscillator management functions.
  *
- * Copyright (c) 2011-2012 Atmel Corporation. All rights reserved.
+ * Copyright (c) 2011-2015 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -40,6 +40,9 @@
  * \asf_license_stop
  *
  */
+/*
+ * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
+ */
 
 #ifndef CHIP_OSC_H_INCLUDED
 #define CHIP_OSC_H_INCLUDED
@@ -55,6 +58,35 @@ extern "C" {
 /**INDENT-ON**/
 /// @endcond
 
+/*
+ * Below BOARD_XXX macros are related to the specific board, and
+ * should be defined by the board code, otherwise default value are used.
+ */
+#if !defined(BOARD_FREQ_SLCK_XTAL)
+#  warning The board slow clock xtal frequency has not been defined.
+#  define BOARD_FREQ_SLCK_XTAL      (32768UL)
+#endif
+
+#if !defined(BOARD_FREQ_SLCK_BYPASS)
+#  warning The board slow clock bypass frequency has not been defined.
+#  define BOARD_FREQ_SLCK_BYPASS    (32768UL)
+#endif
+
+#if !defined(BOARD_FREQ_MAINCK_XTAL)
+#  warning The board main clock xtal frequency has not been defined.
+#  define BOARD_FREQ_MAINCK_XTAL    (12000000UL)
+#endif
+
+#if !defined(BOARD_FREQ_MAINCK_BYPASS)
+#  warning The board main clock bypass frequency has not been defined.
+#  define BOARD_FREQ_MAINCK_BYPASS  (12000000UL)
+#endif
+
+#if !defined(BOARD_OSC_STARTUP_US)
+#  warning The board main clock xtal startup time has not been defined.
+#  define BOARD_OSC_STARTUP_US      (15625UL)
+#endif
+
 /**
  * \weakgroup osc_group
  * @{
@@ -62,26 +94,26 @@ extern "C" {
 
 //! \name Oscillator identifiers
 //@{
-#define OSC_SLCK_32K_RC				0    //!< Internal 32kHz RC oscillator.
-#define OSC_SLCK_32K_XTAL			1    //!< External 32kHz crystal oscillator.
+#define OSC_SLCK_32K_RC             0    //!< Internal 32kHz RC oscillator.
+#define OSC_SLCK_32K_XTAL           1    //!< External 32kHz crystal oscillator.
 #define OSC_SLCK_32K_BYPASS         2    //!< External 32kHz bypass oscillator.
-#define OSC_MAINCK_4M_RC			3    //!< Internal 4MHz RC oscillator.
-#define OSC_MAINCK_8M_RC			4    //!< Internal 8MHz RC oscillator.
-#define OSC_MAINCK_12M_RC			5    //!< Internal 12MHz RC oscillator.
-#define OSC_MAINCK_XTAL				6    //!< External crystal oscillator.
-#define OSC_MAINCK_BYPASS			7    //!< External bypass oscillator.
+#define OSC_MAINCK_4M_RC            3    //!< Internal 4MHz RC oscillator.
+#define OSC_MAINCK_8M_RC            4    //!< Internal 8MHz RC oscillator.
+#define OSC_MAINCK_12M_RC           5    //!< Internal 12MHz RC oscillator.
+#define OSC_MAINCK_XTAL             6    //!< External crystal oscillator.
+#define OSC_MAINCK_BYPASS           7    //!< External bypass oscillator.
 //@}
 
 //! \name Oscillator clock speed in hertz
 //@{
-#define OSC_SLCK_32K_RC_HZ			CHIP_FREQ_SLCK_RC    			//!< Internal 32kHz RC oscillator.
-#define OSC_SLCK_32K_XTAL_HZ		BOARD_FREQ_SLCK_XTAL  		  	//!< External 32kHz crystal oscillator.
-#define OSC_SLCK_32K_BYPASS_HZ      BOARD_FREQ_SLCK_BYPASS			//!< External 32kHz bypass oscillator.
-#define OSC_MAINCK_4M_RC_HZ			CHIP_FREQ_MAINCK_RC_4MHZ		//!< Internal 4MHz RC oscillator.
-#define OSC_MAINCK_8M_RC_HZ			CHIP_FREQ_MAINCK_RC_8MHZ		//!< Internal 8MHz RC oscillator.
-#define OSC_MAINCK_12M_RC_HZ		CHIP_FREQ_MAINCK_RC_12MHZ		//!< Internal 12MHz RC oscillator.
-#define OSC_MAINCK_XTAL_HZ			BOARD_FREQ_MAINCK_XTAL			//!< External crystal oscillator.
-#define OSC_MAINCK_BYPASS_HZ		BOARD_FREQ_MAINCK_BYPASS		//!< External bypass oscillator.
+#define OSC_SLCK_32K_RC_HZ          CHIP_FREQ_SLCK_RC               //!< Internal 32kHz RC oscillator.
+#define OSC_SLCK_32K_XTAL_HZ        BOARD_FREQ_SLCK_XTAL            //!< External 32kHz crystal oscillator.
+#define OSC_SLCK_32K_BYPASS_HZ      BOARD_FREQ_SLCK_BYPASS          //!< External 32kHz bypass oscillator.
+#define OSC_MAINCK_4M_RC_HZ         CHIP_FREQ_MAINCK_RC_4MHZ        //!< Internal 4MHz RC oscillator.
+#define OSC_MAINCK_8M_RC_HZ         CHIP_FREQ_MAINCK_RC_8MHZ        //!< Internal 8MHz RC oscillator.
+#define OSC_MAINCK_12M_RC_HZ        CHIP_FREQ_MAINCK_RC_12MHZ       //!< Internal 12MHz RC oscillator.
+#define OSC_MAINCK_XTAL_HZ          BOARD_FREQ_MAINCK_XTAL          //!< External crystal oscillator.
+#define OSC_MAINCK_BYPASS_HZ        BOARD_FREQ_MAINCK_BYPASS        //!< External bypass oscillator.
 //@}
 
 static inline void osc_enable(uint32_t ul_id)
@@ -113,11 +145,15 @@ static inline void osc_enable(uint32_t ul_id)
 
 
 	case OSC_MAINCK_XTAL:
-		pmc_switch_mainck_to_xtal(PMC_OSC_XTAL);
+		pmc_switch_mainck_to_xtal(PMC_OSC_XTAL,
+			pmc_us_to_moscxtst(BOARD_OSC_STARTUP_US,
+				OSC_SLCK_32K_RC_HZ));
 		break;
 
 	case OSC_MAINCK_BYPASS:
-		pmc_switch_mainck_to_xtal(PMC_OSC_BYPASS);
+		pmc_switch_mainck_to_xtal(PMC_OSC_BYPASS,
+			pmc_us_to_moscxtst(BOARD_OSC_STARTUP_US,
+				OSC_SLCK_32K_RC_HZ));
 		break;
 	}
 }
@@ -173,15 +209,11 @@ static inline uint32_t osc_get_rate(uint32_t ul_id)
 	case OSC_SLCK_32K_RC:
 		return OSC_SLCK_32K_RC_HZ;
 
-#ifdef BOARD_FREQ_SLCK_XTAL
 	case OSC_SLCK_32K_XTAL:
 		return BOARD_FREQ_SLCK_XTAL;
-#endif
 
-#ifdef BOARD_FREQ_SLCK_BYPASS
 	case OSC_SLCK_32K_BYPASS:
 		return BOARD_FREQ_SLCK_BYPASS;
-#endif
 
 	case OSC_MAINCK_4M_RC:
 		return OSC_MAINCK_4M_RC_HZ;
@@ -192,15 +224,11 @@ static inline uint32_t osc_get_rate(uint32_t ul_id)
 	case OSC_MAINCK_12M_RC:
 		return OSC_MAINCK_12M_RC_HZ;
 
-#ifdef BOARD_FREQ_MAINCK_XTAL
 	case OSC_MAINCK_XTAL:
 		return BOARD_FREQ_MAINCK_XTAL;
-#endif
 
-#ifdef BOARD_FREQ_MAINCK_BYPASS
 	case OSC_MAINCK_BYPASS:
 		return BOARD_FREQ_MAINCK_BYPASS;
-#endif
 	}
 
 	return 0;

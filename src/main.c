@@ -80,6 +80,9 @@
  *
  */
 
+/* Atmel library includes. */
+#include <asf.h>
+
 /* Standard includes. */
 #include <stdio.h>
 
@@ -90,9 +93,6 @@
 /* Standard demo includes - just needed for the LED (ParTest) initialisation
 function. */
 #include "partest.h"
-
-/* Atmel library includes. */
-#include <asf.h>
 
 /* Set mainCREATE_SIMPLE_BLINKY_DEMO_ONLY to one to run the simple blinky demo,
 or 0 to run the more comprehensive test and demo application. */

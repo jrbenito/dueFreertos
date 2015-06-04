@@ -154,7 +154,7 @@
 /*! Power LED pin definition (ORANGE). L */
 #define PIN_POWER_LED   {PIO_PB27, PIOB, ID_PIOB, PIO_OUTPUT_1, PIO_DEFAULT}
 /*! LED #1 pin definition */
-#define PIN_USER_LED1   {PIO_PA21, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT}
+#define PIN_USER_LED1   {PIO_PC21, PIOC, ID_PIOC, PIO_OUTPUT_1, PIO_DEFAULT}
 /*! LED #2 pin definition */
 #define PIN_USER_LED2   {PIO_PC22, PIOC, ID_PIOC, PIO_OUTPUT_1, PIO_DEFAULT}
 /*! LED #3 pin definition */
@@ -178,14 +178,14 @@
 
 /*! LED #1 pin definition */
 #define LED_1_NAME      "External_LED_on_PWM9_connector_output"
-#define LED1_GPIO       (PIO_PA21_IDX)
+#define LED1_GPIO       (PIO_PC21_IDX)
 #define LED1_FLAGS      (PIO_TYPE_PIO_OUTPUT_1 | PIO_DEFAULT)
 #define LED1_ACTIVE_LEVEL 0
 
-#define PIN_LED_1       {1 << 21, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT}
+#define PIN_LED_1       {1 << 21, PIOC, ID_PIOC, PIO_OUTPUT_1, PIO_DEFAULT}
 #define PIN_LED_1_MASK  (1 << 21)
-#define PIN_LED_1_PIO   PIOA
-#define PIN_LED_1_ID    ID_PIOA
+#define PIN_LED_1_PIO   PIOC
+#define PIN_LED_1_ID    ID_PIOC
 #define PIN_LED_1_TYPE  PIO_OUTPUT_1
 #define PIN_LED_1_ATTR  PIO_DEFAULT
 

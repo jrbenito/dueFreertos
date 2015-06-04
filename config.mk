@@ -97,6 +97,7 @@ INC_PATH = \
        asf/common/boards                                      \
        asf/common/services/clock                              \
        asf/common/services/gpio                               \
+       asf/common/services/ioport                             \
        asf/common/utils                                       \
        asf/sam/boards                                         \
        asf/sam/boards/arduino_due_x                           \

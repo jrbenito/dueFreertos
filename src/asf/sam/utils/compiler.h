@@ -3,7 +3,7 @@
  *
  * \brief Commonly used includes, types and macros.
  *
- * Copyright (c) 2010-2012 Atmel Corporation. All rights reserved.
+ * Copyright (c) 2010-2015 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -39,6 +39,9 @@
  *
  * \asf_license_stop
  *
+ */
+/*
+ * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 
 #ifndef UTILS_COMPILER_H
@@ -85,6 +88,7 @@
 
 #endif
 
+#define FUNC_PTR                            void *
 /**
  * \def UNUSED
  * \brief Marking \a v as a unused parameter or value.
@@ -153,11 +157,26 @@
  * becomes.
  */
 #if defined(__CC_ARM)
-#       define __always_inline   __forceinline
+#   define __always_inline   __forceinline
 #elif (defined __GNUC__)
-#	define __always_inline   __attribute__((__always_inline__)) inline
+#	define __always_inline   inline __attribute__((__always_inline__))
 #elif (defined __ICCARM__)
 #	define __always_inline   _Pragma("inline=forced")
+#endif
+
+/**
+ * \def __no_inline
+ * \brief The function should not be inlined.
+ *
+ * This annotation instructs the compiler to ignore its inlining
+ * heuristics and not inline the function.
+ */
+#if defined(__CC_ARM)
+#   define __no_inline   __attribute__((noinline))
+#elif (defined __GNUC__)
+#	define __no_inline   __attribute__((__noinline__))
+#elif (defined __ICCARM__)
+#	define __no_inline   _Pragma("inline=never")
 #endif
 
 /*! \brief This macro is used to test fatal errors.
@@ -184,8 +203,8 @@
 #  define Assert(expr) ((void) 0)
 #endif
 
-/* Define attribute */
-#if defined   ( __CC_ARM   ) /* Keil �Vision 4 */
+/* Define WEAK attribute */
+#if defined   ( __CC_ARM   ) /* Keil µVision 4 */
 #   define WEAK __attribute__ ((weak))
 #elif defined ( __ICCARM__ ) /* IAR Ewarm 5.41+ */
 #   define WEAK __weak
@@ -200,6 +219,24 @@
 #   define NO_INIT __no_init
 #elif defined (  __GNUC__  )
 #   define NO_INIT __attribute__((section(".no_init")))
+#endif
+
+/* Define RAMFUNC attribute */
+#if defined   ( __CC_ARM   ) /* Keil µVision 4 */
+#   define RAMFUNC __attribute__ ((section(".ramfunc")))
+#elif defined ( __ICCARM__ ) /* IAR Ewarm 5.41+ */
+#   define RAMFUNC __ramfunc
+#elif defined (  __GNUC__  ) /* GCC CS3 2009q3-68 */
+#   define RAMFUNC __attribute__ ((section(".ramfunc")))
+#endif
+
+/* Define OPTIMIZE_HIGH attribute */
+#if defined   ( __CC_ARM   ) /* Keil µVision 4 */
+#   define OPTIMIZE_HIGH _Pragma("O3") 
+#elif defined ( __ICCARM__ ) /* IAR Ewarm 5.41+ */
+#   define OPTIMIZE_HIGH _Pragma("optimize=high")
+#elif defined (  __GNUC__  ) /* GCC CS3 2009q3-68 */
+#   define OPTIMIZE_HIGH __attribute__((optimize(s)))
 #endif
 
 #include "interrupt.h"
@@ -1005,6 +1042,153 @@ typedef U8                  Byte;       //!< 8-bit unsigned integer.
 
 #endif  // #ifndef __ASSEMBLY__
 
+
+#if defined(__ICCARM__)
+#define SHORTENUM           __packed
+#elif defined(__GNUC__)
+#define SHORTENUM           __attribute__((packed))
+#endif
+
+/* No operation */
+#if defined(__ICCARM__)
+#define nop()               __no_operation()
+#elif defined(__GNUC__)
+#define nop()               (__NOP())
+#endif
+
+#define FLASH_DECLARE(x)  const x
+#define FLASH_EXTERN(x) extern const x
+#define PGM_READ_BYTE(x) *(x)
+#define PGM_READ_WORD(x) *(x)
+#define PGM_READ_DWORD(x) *(x)
+#define MEMCPY_ENDIAN memcpy
+#define PGM_READ_BLOCK(dst, src, len) memcpy((dst), (src), (len))
+
+/*Defines the Flash Storage for the request and response of MAC*/
+#define CMD_ID_OCTET    (0)
+
+/* Converting of values from CPU endian to little endian. */
+#define CPU_ENDIAN_TO_LE16(x)   (x)
+#define CPU_ENDIAN_TO_LE32(x)   (x)
+#define CPU_ENDIAN_TO_LE64(x)   (x)
+
+/* Converting of values from little endian to CPU endian. */
+#define LE16_TO_CPU_ENDIAN(x)   (x)
+#define LE32_TO_CPU_ENDIAN(x)   (x)
+#define LE64_TO_CPU_ENDIAN(x)   (x)
+
+/* Converting of constants from little endian to CPU endian. */
+#define CLE16_TO_CPU_ENDIAN(x)  (x)
+#define CLE32_TO_CPU_ENDIAN(x)  (x)
+#define CLE64_TO_CPU_ENDIAN(x)  (x)
+
+/* Converting of constants from CPU endian to little endian. */
+#define CCPU_ENDIAN_TO_LE16(x)  (x)
+#define CCPU_ENDIAN_TO_LE32(x)  (x)
+#define CCPU_ENDIAN_TO_LE64(x)  (x)
+
+#define ADDR_COPY_DST_SRC_16(dst, src)  ((dst) = (src))
+#define ADDR_COPY_DST_SRC_64(dst, src)  ((dst) = (src))
+
+/**
+ * @brief Converts a 64-Bit value into  a 8 Byte array
+ *
+ * @param[in] value 64-Bit value
+ * @param[out] data Pointer to the 8 Byte array to be updated with 64-Bit value
+ * @ingroup apiPalApi
+ */
+static inline void convert_64_bit_to_byte_array(uint64_t value, uint8_t *data)
+{
+    uint8_t val_index = 0;
+
+    while (val_index < 8)
+    {
+        data[val_index++] = value & 0xFF;
+        value = value >> 8;
+    }
+}
+
+/**
+ * @brief Converts a 16-Bit value into  a 2 Byte array
+ *
+ * @param[in] value 16-Bit value
+ * @param[out] data Pointer to the 2 Byte array to be updated with 16-Bit value
+ * @ingroup apiPalApi
+ */
+static inline void convert_16_bit_to_byte_array(uint16_t value, uint8_t *data)
+{
+    data[0] = value & 0xFF;
+    data[1] = (value >> 8) & 0xFF;
+}
+
+/* Converts a 16-Bit value into a 2 Byte array */
+static inline void convert_spec_16_bit_to_byte_array(uint16_t value, uint8_t *data)
+{
+    data[0] = value & 0xFF;
+    data[1] = (value >> 8) & 0xFF;
+}
+
+/* Converts a 16-Bit value into a 2 Byte array */
+static inline void convert_16_bit_to_byte_address(uint16_t value, uint8_t *data)
+{
+    data[0] = value & 0xFF;
+    data[1] = (value >> 8) & 0xFF;
+}
+
+/*
+ * @brief Converts a 2 Byte array into a 16-Bit value
+ *
+ * @param data Specifies the pointer to the 2 Byte array
+ *
+ * @return 16-Bit value
+ * @ingroup apiPalApi
+ */
+static inline uint16_t convert_byte_array_to_16_bit(uint8_t *data)
+{
+    return (data[0] | ((uint16_t)data[1] << 8));
+}
+
+/* Converts a 8 Byte array into a 32-Bit value */
+static inline uint32_t convert_byte_array_to_32_bit(uint8_t *data)
+{
+	union
+	{
+		uint32_t u32;
+		uint8_t u8[8];
+	}long_addr;
+	uint8_t index;
+	for (index = 0; index < 4; index++)
+	{
+		long_addr.u8[index] = *data++;
+	}
+	return long_addr.u32;
+}
+
+/**
+ * @brief Converts a 8 Byte array into a 64-Bit value
+ *
+ * @param data Specifies the pointer to the 8 Byte array
+ *
+ * @return 64-Bit value
+ * @ingroup apiPalApi
+ */
+static inline uint64_t convert_byte_array_to_64_bit(uint8_t *data)
+{
+    union
+    {
+        uint64_t u64;
+        uint8_t u8[8];
+    } long_addr;
+
+    uint8_t val_index;
+
+    for (val_index = 0; val_index < 8; val_index++)
+    {
+        long_addr.u8[val_index] = *data++;
+    }
+
+    return long_addr.u64;
+}
 /**
  * \}
  */
