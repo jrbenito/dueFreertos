@@ -103,6 +103,9 @@
  * full information, including hardware setup requirements.
  */
 
+/* Atmel library includes. */
+#include "asf.h"
+
 /* Standard includes. */
 #include <stdio.h>
 
@@ -126,10 +129,6 @@
 #include "flash_timer.h"
 #include "partest.h"
 #include "comtest2.h"
-
-
-/* Atmel library includes. */
-#include "asf.h"
 
 /* Priorities for the demo application tasks. */
 #define mainQUEUE_POLL_PRIORITY				( tskIDLE_PRIORITY + 2UL )
