@@ -104,6 +104,9 @@
  * the LED every 200 milliseconds.
  */
 
+/* Atmel library includes. */
+#include "asf.h"
+
 /* Standard includes. */
 #include <stdio.h>
 
@@ -111,9 +114,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
-
-/* Atmel library includes. */
-#include "asf.h"
 
 /* Common demo includes. */
 #include "partest.h"
