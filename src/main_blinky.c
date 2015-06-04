@@ -234,7 +234,7 @@ unsigned long ulReceivedValue;
 		is it the expected value?  If it is, toggle the LED. */
 		if( ulReceivedValue == 100UL )
 		{
-			vParTestToggleLED( 0 );
+			vParTestToggleLED( 1 );
 			ulReceivedValue = 0U;
 		}
 	}
