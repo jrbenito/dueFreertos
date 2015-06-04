@@ -158,7 +158,7 @@ check timer, only two are used by the flash timers. */
 
 /* The LED toggled by the check timer.  The first two LEDs are toggle by the
 standard demo flash timers. */
-#define mainCHECK_LED						( 2 )
+#define mainCHECK_LED						( 1 )
 
 /* Baud rate used by the comtest tasks. */
 #define mainCOM_TEST_BAUD_RATE				( 115200 )
@@ -173,7 +173,7 @@ for the comtest, so the LED number is deliberately out of range. */
  * The check timer callback function, as described at the top of this file.
  */
 static void prvCheckTimerCallback( TimerHandle_t xTimer );
-
+void main_full( void );
 /*-----------------------------------------------------------*/
 
 void main_full( void )
@@ -192,8 +192,8 @@ TimerHandle_t xCheckTimer = NULL;
 	vStartRecursiveMutexTasks();
 	vStartPolledQueueTasks( mainQUEUE_POLL_PRIORITY );
 	vStartSemaphoreTasks( mainSEM_TEST_PRIORITY );
-	vStartLEDFlashTimers( mainNUMBER_OF_FLASH_TIMERS_LEDS );
-	vAltStartComTestTasks( mainCOM_TEST_PRIORITY, mainCOM_TEST_BAUD_RATE, mainCOM_TEST_LED );
+	//vStartLEDFlashTimers( mainNUMBER_OF_FLASH_TIMERS_LEDS );
+	//vAltStartComTestTasks( mainCOM_TEST_PRIORITY, mainCOM_TEST_BAUD_RATE, mainCOM_TEST_LED );
 
 	/* Create the software timer that performs the 'check' functionality,
 	as described at the top of this file. */
