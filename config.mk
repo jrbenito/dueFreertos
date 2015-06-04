@@ -37,7 +37,7 @@
 #
 
 # Path to top level Source code directory relative to this project directory.
-PRJ_PATH = ./src
+PRJ_PATH = src
 # Path to build artifacts (objects and other compilation products)
 BUILD_DIR = output/obj
 
