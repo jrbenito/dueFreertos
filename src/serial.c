@@ -152,20 +152,25 @@ const sam_usart_opt_t xUSARTSettings =
 		usart_enable_tx( serUSART_PORT );
 		usart_enable_rx( serUSART_PORT );
 
+#if 0 /* ASF changed usart_getchar, it does not timeout as expected here */
 		/* Clear any characters before enabling interrupt. */
 		usart_getchar( serUSART_PORT, &ulChar );
-
+#else /* So I am using a non blocking function here */
+		usart_read( serUSART_PORT, &ulChar ); /* is not exact same but shall work */
+#endif
 		/* Enable Rx end interrupt. */
 		usart_enable_interrupt( serUSART_PORT, US_IER_RXRDY );
 
 		/* Configure and enable interrupt of USART. */
 		NVIC_SetPriority( serUSART_IRQ, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY );
 		NVIC_EnableIRQ( serUSART_IRQ );
+
 	}
 	else
 	{
 		xReturn = ( xComPortHandle ) 0;
 	}
+
 
 	/* This demo file only supports a single port but we have to return
 	something to comply with the standard demo header file. */
