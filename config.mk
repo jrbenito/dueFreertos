@@ -99,6 +99,7 @@ INC_PATH = \
        asf/common/services/gpio                               \
        asf/common/services/ioport                             \
        asf/common/services/freertos/sam                       \
+       asf/common/services/sleepmgr                           \
        asf/common/utils                                       \
        asf/sam/boards                                         \
        asf/sam/boards/arduino_due_x                           \
