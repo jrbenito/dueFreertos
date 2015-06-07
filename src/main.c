@@ -203,6 +203,8 @@ void vApplicationIdleHook( void )
 	important that vApplicationIdleHook() is permitted to return to its calling
 	function, because it is the responsibility of the idle task to clean up
 	memory allocated by the kernel to any task that has since been deleted. */
+
+	/* take a nap in deepest sleep mode possible for this moment */
 	sleepmgr_enter_sleep();
 }
 /*-----------------------------------------------------------*/
