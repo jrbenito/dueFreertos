@@ -80,15 +80,16 @@
  *
  */
 
-/* Atmel library includes. */
-#include <asf.h>
-
 /* Standard includes. */
 #include <stdio.h>
 
 /* Kernel includes. */
 #include "FreeRTOS.h"
 #include "task.h"
+
+/* Atmel library includes. */
+#include <asf.h>
+
 
 /* Standard demo includes - just needed for the LED (ParTest) initialisation
 function. */
@@ -109,8 +110,15 @@ static void prvSetupHardware( void );
  * main_blinky() is used when mainCREATE_SIMPLE_BLINKY_DEMO_ONLY is set to 1.
  * main_full() is used when mainCREATE_SIMPLE_BLINKY_DEMO_ONLY is set to 0.
  */
+#if mainCREATE_SIMPLE_BLINKY_DEMO_ONLY == 1
+
 extern void main_blinky( void );
+
+#else
+
 extern void main_full( void );
+
+#endif
 
 /* Prototypes for the standard FreeRTOS callback/hook functions implemented
 within this file. */
@@ -147,7 +155,6 @@ int main( void )
 
 static void prvSetupHardware( void )
 {
-extern void SystemCoreClockUpdate( void );
 
 	/* ASF function to setup clocking. */
 	sysclk_init();

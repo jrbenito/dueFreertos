@@ -155,10 +155,16 @@
  * This annotation instructs the compiler to ignore its inlining
  * heuristics and inline the function no matter how big it thinks it
  * becomes.
+ *
+ * This conflicts with GNU ARM Toolchain definition of the sam name
+ * Silincing warnings once and for all
  */
 #if defined(__CC_ARM)
 #   define __always_inline   __forceinline
 #elif (defined __GNUC__)
+#ifdef __always_inline
+#	undef __always_inline
+#endif
 #	define __always_inline   inline __attribute__((__always_inline__))
 #elif (defined __ICCARM__)
 #	define __always_inline   _Pragma("inline=forced")
