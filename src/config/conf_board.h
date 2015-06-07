@@ -47,9 +47,6 @@
 #ifndef CONF_BOARD_H
 #define CONF_BOARD_H
 
-/* Sleep manager options */
-#define CONFIG_SLEEPMGR_ENABLE
-
 /* Configure UART pins */
 #define CONF_BOARD_UART_CONSOLE
 

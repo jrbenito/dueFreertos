@@ -89,6 +89,7 @@
 
 /* Atmel library includes. */
 #include <asf.h>
+#include <sleepmgr.h>
 
 
 /* Standard demo includes - just needed for the LED (ParTest) initialisation
@@ -168,6 +169,9 @@ static void prvSetupHardware( void )
 	/* Perform any configuration necessary to use the ParTest LED output
 	functions. */
 	vParTestInitialise();
+
+	/* Initialize the sleep manager */
+	sleepmgr_init();
 }
 /*-----------------------------------------------------------*/
 
@@ -199,6 +203,7 @@ void vApplicationIdleHook( void )
 	important that vApplicationIdleHook() is permitted to return to its calling
 	function, because it is the responsibility of the idle task to clean up
 	memory allocated by the kernel to any task that has since been deleted. */
+	sleepmgr_enter_sleep();
 }
 /*-----------------------------------------------------------*/
 

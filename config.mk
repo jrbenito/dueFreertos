@@ -55,6 +55,7 @@ TARGET_SRAM = freertos_demo_sram.elf
 # List of C source files.
 CSRCS = \
        asf/common/services/clock/sam3x/sysclk.c               \
+       asf/common/services/sleepmgr/sam/sleepmgr.c            \
        asf/common/utils/interrupt/interrupt_sam_nvic.c        \
        asf/sam/boards/arduino_due_x/init.c                    \
        asf/sam/drivers/pio/pio.c                              \
